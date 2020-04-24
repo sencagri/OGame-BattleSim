@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OGBattleSimTest", "OGBattleSimTest\OGBattleSimTest.csproj", "{82121296-9801-49E4-91DD-751DEF6E8200}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OGBattleSim", "OGBattleSim\OGBattleSim.csproj", "{D7BA4339-58C4-47ED-B0AB-04E82A415000}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{82121296-9801-49E4-91DD-751DEF6E8200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82121296-9801-49E4-91DD-751DEF6E8200}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82121296-9801-49E4-91DD-751DEF6E8200}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82121296-9801-49E4-91DD-751DEF6E8200}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7BA4339-58C4-47ED-B0AB-04E82A415000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7BA4339-58C4-47ED-B0AB-04E82A415000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7BA4339-58C4-47ED-B0AB-04E82A415000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7BA4339-58C4-47ED-B0AB-04E82A415000}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {74D21BF4-AE98-4C29-ACB7-735F5982024E}
+	EndGlobalSection
+EndGlobal
