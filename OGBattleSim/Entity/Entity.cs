@@ -4,146 +4,158 @@ using System.Text;
 
 namespace OGBattleSim
 {
+    [Serializable]
     public class Entity
     {
+
         public Entity(EntityType entityType, Tech tech)
         {
             EntityType = entityType;
+            
+            var values = GetBaseValues(entityType);
+            WeaponPower = (int)((1 + 0.1 * tech.Weapon) * values.Item2);
+            ShieldPower = (int)((1 + 0.1 * tech.Shield) * values.Item3);
+            HullPoint = (int)(values.Item1 / 10 * (1 + 0.1 * tech.Armor));
+            ShieldPowerInit = ShieldPower;
+            HullPointInit = HullPoint;
+            ExplodeMe = false;
+        }
+
+        public EntityType EntityType { get; set; }
+        public int WeaponPower { get; set; }
+        public int ShieldPower { get; set; }
+        public int ShieldPowerInit { get; set; }
+        public int HullPoint { get; set; }
+        public int HullPointInit { get; set; }
+        public bool ExplodeMe { get; set; }
+
+        public static Tuple<int, int, int> GetPrice(EntityType entityType)
+        {
+            switch (entityType)
+            {
+                case EntityType.SmallCargo:
+                    return new Tuple<int, int, int>(2000, 2000, 0);
+                case EntityType.LargeCargo:
+                    return new Tuple<int, int, int>(6000, 6000, 0);
+                case EntityType.LightFighter:
+                    return new Tuple<int, int, int>(3000, 1000, 0);
+                case EntityType.HeavyFighter:
+                    return new Tuple<int, int, int>(6000, 4000, 0);
+                case EntityType.Cruiser:
+                    return new Tuple<int, int, int>(20000, 7000, 2000);
+                case EntityType.Battleship:
+                    return new Tuple<int, int, int>(45000, 15000, 0);
+                case EntityType.ColonyShip:
+                    return new Tuple<int, int, int>(10000, 20000, 10000);
+                case EntityType.Recycler:
+                    return new Tuple<int, int, int>(10000, 6000, 2000);
+                case EntityType.EspionageProbe:
+                    return new Tuple<int, int, int>(0, 1000, 0);
+                case EntityType.Bomber:
+                    return new Tuple<int, int, int>(50000, 25000, 15000);
+                case EntityType.Destroyer:
+                    return new Tuple<int, int, int>(60000, 50000, 15000);
+                case EntityType.Deathstar:
+                    return new Tuple<int, int, int>(5000000, 4000000, 1000000);
+                case EntityType.Battlecruiser:
+                    return new Tuple<int, int, int>(30000, 40000, 15000);
+                case EntityType.Reaper:
+                    return new Tuple<int, int, int>(85000, 55000, 20000);
+                case EntityType.Pathfinder:
+                    return new Tuple<int, int, int>(8000, 15000, 8000);
+                default:
+                    return null;
+            }
+        }
+
+        public static Tuple<int, int, int> GetBaseValues(EntityType entityType)
+        {
+            int price = 0;
+            int weaponPower = 0;
+            int shieldPower = 0;
 
             switch (entityType)
             {
                 case EntityType.LightFighter:
-                    Price = 4000;
-                    WeaponPower = 50 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 10 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 4000;
+                    weaponPower = 50;
+                    shieldPower = 10;
                     break;
                 case EntityType.HeavyFighter:
-                    Price = 10000;
-                    WeaponPower = 150 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 25 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 10000;
+                    weaponPower = 150;
+                    shieldPower = 25;
                     break;
                 case EntityType.Cruiser:
-                    Price = 27000;
-                    WeaponPower = 400 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 50 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 27000;
+                    weaponPower = 400;
+                    shieldPower = 50;
                     break;
                 case EntityType.Battlecruiser:
-                    Price = 70000;
-                    WeaponPower = 700 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 400 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 70000;
+                    weaponPower = 700;
+                    shieldPower = 400;
                     break;
                 case EntityType.SmallCargo:
-                    Price = 4000;
-                    WeaponPower = 5 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 10 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 4000;
+                    weaponPower = 5;
+                    shieldPower = 10;
                     break;
                 case EntityType.LargeCargo:
-                    Price = 12000;
-                    WeaponPower = 5 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 25 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 12000;
+                    weaponPower = 5;
+                    shieldPower = 25;
                     break;
                 case EntityType.Battleship:
-                    Price = 60000;
-                    WeaponPower = 1000 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 200 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 60000;
+                    weaponPower = 1000;
+                    shieldPower = 200;
                     break;
                 case EntityType.ColonyShip:
-                    Price = 30000;
-                    WeaponPower = 50 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 100 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 30000;
+                    weaponPower = 50;
+                    shieldPower = 100;
                     break;
                 case EntityType.Recycler:
-                    Price = 12000;
-                    WeaponPower = 1 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 10 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 16000;
+                    weaponPower = 1;
+                    shieldPower = 10;
                     break;
                 case EntityType.EspionageProbe:
-                    Price = 1000;
-                    WeaponPower = 0 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 0 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 1000;
+                    weaponPower = 0;
+                    shieldPower = 0;
                     break;
                 case EntityType.Bomber:
-                    Price = 75000;
-                    WeaponPower = 1000 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 500 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 75000;
+                    weaponPower = 1000;
+                    shieldPower = 500;
                     break;
                 case EntityType.Destroyer:
-                    Price = 110000;
-                    WeaponPower = 2000 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 500 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 110000;
+                    weaponPower = 2000;
+                    shieldPower = 500;
                     break;
                 case EntityType.Deathstar:
-                    Price = 9000000;
-                    WeaponPower = 200000 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 50000 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 9000000;
+                    weaponPower = 200000;
+                    shieldPower = 50000;
                     break;
                 case EntityType.Reaper:
-                    Price = 140000;
-                    WeaponPower = 2800 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 700 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 140000;
+                    weaponPower = 2800;
+                    shieldPower = 700;
                     break;
                 case EntityType.Pathfinder:
-                    Price = 23000;
-                    WeaponPower = 200 * (1 + 0.1 * tech.Weapon);
-                    ShieldPower = 100 * (1 + 0.1 * tech.Shield);
-                    ShieldPowerInit = ShieldPower;
-                    HullPoint = (Price / 10) * (1 + 0.1 * tech.Armor);
-                    HullPointInit = HullPoint;
+                    price = 23000;
+                    weaponPower = 200;
+                    shieldPower = 100;
                     break;
                 default:
                     break;
             }
-        }
 
-        public EntityType EntityType { get; set; }
-        public double WeaponPower { get; set; }
-        public double ShieldPower { get; set; }
-        public double ShieldPowerInit { get; set; }
-        public double HullPoint { get; set; }
-        public double HullPointInit { get; set; }
-        public int Price { get; set; }
-        public bool ExplodeMe { get; set; }
+            return new Tuple<int, int, int>(price, weaponPower, shieldPower);
+        }
     }
 }

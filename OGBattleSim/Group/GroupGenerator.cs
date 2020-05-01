@@ -11,7 +11,6 @@ namespace OGBattleSim
         {
             Group result = null;
 
-
             if (entityInfo != null)
             {
                 result = new Group();
@@ -23,12 +22,20 @@ namespace OGBattleSim
 
                 foreach (var entityinfo in entityInfo.EntityQuanties)
                 {
+                    Parallel.For(0, entityinfo.Value, i =>
+                    {
+                        lock (result.Entities)
+                        {
+                            result.Entities.Add(new Entity(entityinfo.Key, tech));
+                        }
+                    });
+                    /*
                     for (int i = 0; i < entityinfo.Value; i++)
                     {
                         result.Entities.Add(new Entity(entityinfo.Key, tech));
                     }
+                    */
                 }
-
             }
 
             return result;

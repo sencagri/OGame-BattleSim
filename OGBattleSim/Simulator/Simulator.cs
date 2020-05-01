@@ -1,24 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OGBattleSim
 {
-    public static class Simulator
+    public class Simulator
     {
-        public static Random R { get; set; } = new Random();
+
+        public Random R { get; set; } = new Random();
 
 
-        public static BattleResult RunBattle(List<Group> attackerGroup, List<Group> defenderGroup, Settings settings)
+        public BattleResult RunBattle(List<Group> groups, Settings settings)
         {
+            BattleResult results = new BattleResult();
 
+            List<Group> attackerGroup = groups.Where(r => r.Attacker).ToList();
+            List<Group> defenderGroup = groups.Where(r => !r.Attacker).ToList();
+
+            addBattleEntity(results, groups);
+
+            StartRounds(attackerGroup, defenderGroup);
+
+            addBattleEntity(results, groups, false);
+
+            return results;
+        }
+
+        private void StartRounds(List<Group> attackerGroup, List<Group> defenderGroup)
+        {
             // Rounds
             for (int i = 0; i < 6; i++)
             {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
                 // attack phase
-                groupFire(attackerGroup, defenderGroup);
-                groupFire(defenderGroup, attackerGroup);
 
+                var t1 = Task.Run(() =>
+                 {
+                     groupFire(attackerGroup, defenderGroup);
+
+                 });
+                var t2 = Task.Run(() =>
+                {
+                    groupFire(defenderGroup, attackerGroup);
+                });
+
+                Task.WaitAll(t1, t2);
+                sw.Stop();
+                var t = sw.ElapsedMilliseconds;
                 // round end, reset shields and remove exploded entities
                 resetShields(attackerGroup);
                 resetShields(defenderGroup);
@@ -33,44 +64,113 @@ namespace OGBattleSim
                     break;
                 }
             }
-
-            return new BattleResult();
         }
 
-        private static void removeExplodedEntities(List<Group> groupList)
+        public BattleResult addBattleEntity(BattleResult battleResult, List<Group> groups, bool before = true)
+        {
+            var attackerBeforeGroup = groups.FirstOrDefault(r => r.Attacker);
+            var defenderBeforeGroup = groups.FirstOrDefault(r => !r.Attacker);
+
+            //EntityType[] entityTypes = new EntityType();
+            /*
+            EntityType[] vals = (EntityType[])Enum.GetValues(typeof(EntityType)).Clone();
+            
+            Parallel.ForEach(vals, (entityType) => {
+                var quantityAttacker = attackerBeforeGroup.Entities.Count(r => r.EntityType == entityType);
+                var quantityDefender = defenderBeforeGroup.Entities.Count(r => r.EntityType == entityType);
+
+                if (before)
+                {
+                    battleResult.AttackerResults.Add(new EntityResult() { EntityType = entityType, QuantityBefore = quantityAttacker });
+                    battleResult.DefenderResults.Add(new EntityResult() { EntityType = entityType, QuantityBefore = quantityDefender });
+                }
+                else
+                {
+                    battleResult.AttackerResults.FirstOrDefault(r => r.EntityType == entityType).QuantityAfter = quantityAttacker;
+                    battleResult.DefenderResults.FirstOrDefault(r => r.EntityType == entityType).QuantityAfter = quantityDefender;
+                }
+            });
+            */
+
+            foreach (EntityType entityType in Enum.GetValues(typeof(EntityType)))
+            {
+                var quantityAttacker = attackerBeforeGroup.Entities.Count(r => r.EntityType == entityType);
+                var quantityDefender = defenderBeforeGroup.Entities.Count(r => r.EntityType == entityType);
+
+                if (quantityAttacker > 0)
+                {
+                    if (before)
+                    {
+                        battleResult.AttackerResults.Add(new EntityResult() { EntityType = entityType, QuantityBefore = quantityAttacker });
+                    }
+                    else
+                    {
+                        battleResult.AttackerResults.FirstOrDefault(r => r.EntityType == entityType).QuantityAfter = quantityDefender;
+                    }
+                }
+
+                if (quantityDefender > 0)
+                {
+                    if (before)
+                    {
+                        battleResult.DefenderResults.Add(new EntityResult() { EntityType = entityType, QuantityBefore = quantityAttacker });
+                    }
+                    else
+                    {
+                        battleResult.DefenderResults.FirstOrDefault(r => r.EntityType == entityType).QuantityAfter = quantityDefender;
+                    }
+                }
+            }
+
+            return battleResult;
+        }
+
+        private void removeExplodedEntities(List<Group> groupList)
         {
             foreach (var group in groupList)
             {
-                var explodedEntities = group.Entities.Where(r => r.ExplodeMe).ToList();
-                for (int i = 0; i < explodedEntities.Count; i++)
-                {
-                    var explodedEntity = explodedEntities[i];
-                    group.Entities.Remove(explodedEntity);
-                }
+                group.Entities = group.Entities.Where(r => !r.ExplodeMe).ToList();
             }
         }
 
-        private static void resetShields(List<Group> groupList)
+        private void resetShields(List<Group> groupList)
         {
             foreach (var group in groupList)
             {
-                foreach (var entity in group.Entities)
+                for (int i = 0; i < group.Entities.Count; i++)
                 {
+                    var entity = group.Entities[i];
                     entity.ShieldPower = entity.ShieldPowerInit;
                 }
             }
         }
 
-        private static void groupFire(List<Group> attackerGroup, List<Group> defenderGroup)
+        private void groupFire(List<Group> attackerGroup, List<Group> defenderGroup)
         {
 
-            var attacker = attackerGroup.FirstOrDefault().Entities;
-            var defender = defenderGroup.FirstOrDefault().Entities;
+            var attacker = attackerGroup.FirstOrDefault().Entities.ToArray();
+            var defender = defenderGroup.FirstOrDefault().Entities.ToArray();
 
-            var attackerCount = attacker.Count;
-            var defenderCount = defender.Count;
+            var attackerCount = attacker.Count();
+            var defenderCount = defender.Count();
 
-            for (int i = 0; i < attacker.Count; i++)
+            for (int i = 0; i < attackerCount; i++)
+            {
+                var attackingEntity = attacker[i];
+                bool rapidFire;
+
+                do
+                {
+                    var rand = R.Next(defenderCount);
+                    var defendingEntity = defender[rand];
+                    entityAttacksEntity(attackingEntity, defendingEntity);
+                    rapidFire = shouldItShootAgain(attackingEntity, defendingEntity);
+
+                } while (rapidFire);
+            }
+            /*
+
+            Parallel.For(0, attackerCount, i =>
             {
                 var attackingEntity = attacker[i];
                 bool rapidFire = false;
@@ -82,10 +182,12 @@ namespace OGBattleSim
                     rapidFire = shouldItShootAgain(attackingEntity, defendingEntity);
 
                 } while (rapidFire);
-            }
+            });
+            */
+
         }
 
-        private static bool shouldItShootAgain(Entity attackingEntity, Entity defendingEntity)
+        private bool shouldItShootAgain(Entity attackingEntity, Entity defendingEntity)
         {
             float rapidFire = 0;
 
@@ -266,8 +368,8 @@ namespace OGBattleSim
 
             if (rapidFire > 0)
             {
-                var rapidRatio = (rapidFire - 1) / (rapidFire) * 100;
-                var ratio = R.Next(100);
+                var rapidRatio = (rapidFire - 1) * 1.0 / (rapidFire) * 100;
+                var ratio = R.Next(100) * 1.0;
                 if (ratio <= rapidRatio)
                 {
                     return true;
@@ -276,13 +378,20 @@ namespace OGBattleSim
             return false;
         }
 
-        private static void entityAttacksEntity(Entity attackingEntity, Entity defendingEntity)
+        private void entityAttacksEntity(Entity attackingEntity, Entity defendingEntity)
         {
             if (attackingEntity.WeaponPower < defendingEntity.ShieldPower * 0.01)
             {
                 // bounced
                 return;
             }
+
+            /*
+            if (defendingEntity.HullPoint == 0)
+            {
+                // do not calculate again if already exploded
+                defendingEntity.ExplodeMe = true;
+            }*/
 
             var defenderShieldPoint = defendingEntity.ShieldPower;
             defendingEntity.ShieldPower -= attackingEntity.WeaponPower;
@@ -304,14 +413,15 @@ namespace OGBattleSim
             }
         }
 
-        private static void checkExploding(Entity defendingEntity)
+        private void checkExploding(Entity defendingEntity)
         {
-            var checkExplodeRatio = defendingEntity.HullPoint / defendingEntity.HullPointInit;
+
+            var checkExplodeRatio = defendingEntity.HullPoint * 1.0 / defendingEntity.HullPointInit;
             if (checkExplodeRatio <= 0.7)
             {
-                var explodeRatio = (1 - (defendingEntity.HullPoint / defendingEntity.HullPointInit))*100;
+                var explodeRatio = (1 - (defendingEntity.HullPoint * 1.0 / defendingEntity.HullPointInit)) * 100;
                 var ratio = R.Next(100);
-                
+
                 if (ratio <= explodeRatio)
                 {
                     defendingEntity.ExplodeMe = true;

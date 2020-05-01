@@ -4,6 +4,7 @@ using System.Text;
 
 namespace OGBattleSim
 {
+    [Serializable]
     public class Tech
     {
         public int Weapon { get; set; }
